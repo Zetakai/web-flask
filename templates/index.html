@@ -1,0 +1,76 @@
+{% extends "base.html" %} {% block content %}
+<h1>New Tasks</h1>
+<ul id="task-list">
+  {% for task_id, task in tasks|enumerate %} {% if task.status == "new" %}
+  <li>
+    {{ task_id }}. <strong>{{ task.title }}</strong> - {{ task.description }} &#40;{{task.type}}&#41;
+    <a href="/edit/{{ task.id }}">Edit</a>
+    <a href="/delete/{{ task.id }}">Delete</a>
+    <a href="/mark_task_as_done/{{ task.id }}">Mark as Done</a>
+  </li>
+  {% endif %} {% endfor %}
+</ul>
+
+<h1>Done Tasks</h1>
+<ul id="done-task-list">
+  {% for task_id, task in tasks|enumerate %} {% if task.status == "done" %}
+  <li>
+    {{ task_id }}. <strong>{{ task.title }}</strong> - {{ task.description }} &#40;{{task.type}}&#41;
+  </li>
+  {% endif %} {% endfor %}
+</ul>
+
+<form id="add-task-form">
+  <input type="text" id="title" placeholder="Title" required />
+  <input type="text" id="description" placeholder="Description" />
+  <input type="text" id="type" placeholder="Type" required />
+  <button type="button" id="add-task-button">Add</button>
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function () {
+    $("#add-task-button").click(function () {
+      var title = $("#title").val();
+      var description = $("#description").val();
+      var type = $("#type").val();
+
+      $.ajax({
+        url: "/add_task_ajax",
+        type: "POST",
+        data: {
+          title: title,
+          description: description,
+          type: type,
+        },
+        success: function (response) {
+          if (response.success) {
+            var taskHTML =
+              "<li>" +
+              response.task_id +
+              ". " +
+              response.title +
+              " - " +
+              response.description +
+              " (" +
+              response.type +
+              ') <a href="/edit/' +
+              response.task_id +
+              '">Edit</a> <a href="/delete/' +
+              response.task_id +
+              '">Delete</a> <a href="/mark_task_as_done/' +
+              response.task_id +
+              '">Mark as Done</a></li>';
+            $("#task-list").append(taskHTML);
+            $("#title").val("");
+            $("#description").val("");
+            $("#type").val("");
+          } else {
+            alert("Error: " + response.error);
+          }
+        },
+      });
+    });
+  });
+</script>
+{% endblock %}
